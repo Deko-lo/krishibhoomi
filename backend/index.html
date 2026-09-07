@@ -3873,7 +3873,7 @@ if (selectedDocumentFile) {
     formData.append("document", selectedDocumentFile);
 }
 
-const response = await fetch("http://localhost:5000/api/surveys", {
+const response = await fetch("/api/surveys", {
             method: "POST",
            body: formData
            });

@@ -19,9 +19,6 @@
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-<!-- Turf.js for accurate polygon area calculation -->
-<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
-
 <style>
 :root {
     --brand-dark: #0f291e;
@@ -1550,68 +1547,6 @@ footer {
     .notif-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr; }
 }
-
-/* =========================================================
-   NEW LAND / REAL BOUNDARY DRAWING
-========================================================= */
-.draw-status-panel {
-    position: absolute;
-    left: 14px;
-    bottom: 14px;
-    z-index: 500;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 12px 14px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    min-width: 240px;
-    max-width: 310px;
-    display: none;
-}
-.draw-status-panel.show {
-    display: block;
-}
-.draw-status-panel strong {
-    display: block;
-    color: var(--brand-forest);
-    font-size: 13px;
-    margin-bottom: 4px;
-}
-.draw-status-panel p {
-    color: var(--text-muted);
-    font-size: 11.5px;
-    line-height: 1.45;
-    margin-bottom: 9px;
-}
-.draw-status-actions {
-    display: flex;
-    gap: 7px;
-}
-.draw-status-actions button {
-    flex: 1;
-    padding: 7px 9px;
-    border-radius: 7px;
-    border: 1px solid var(--border);
-    font-size: 11.5px;
-    font-weight: 700;
-}
-.new-land-preview {
-    background: #f0fdf4;
-    border: 1px solid var(--border-green);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    margin-top: 12px;
-}
-.new-land-preview strong {
-    color: var(--brand-forest);
-}
-.area-result-big {
-    font-size: 25px;
-    font-weight: 800;
-    color: var(--brand-primary);
-    margin-top: 4px;
-}
-
 </style>
 </head>
 
@@ -1838,25 +1773,12 @@ footer {
             <div class="map-viewport-wrapper">
                 <div id="gisMap"></div>
 
-
-                <div class="draw-status-panel" id="drawStatusPanel">
-                    <strong>📐 Boundary Drawing Mode</strong>
-                    <p id="drawStatusText">Click the map to add boundary points. Add at least 3 points, then finish.</p>
-                    <div class="draw-status-actions">
-                        <button type="button" onclick="finishNewLandBoundary()" style="background:#15803d;color:white;border-color:#15803d;">✓ Finish</button>
-                        <button type="button" onclick="cancelNewLandBoundary()" style="background:white;color:#b91c1c;">✕ Cancel</button>
-                    </div>
-                </div>
-
                 <div class="map-controls-overlay">
                     <button class="map-ctrl-btn" onclick="toggleMapLayer()" id="layerToggleBtn">
                         🛰️ Satellite View
                     </button>
                     <button class="map-ctrl-btn" onclick="locateUserGps()">
                         📍 Locate My Field
-                    </button>
-                    <button class="map-ctrl-btn" onclick="startNewLandWorkflow()">
-                        ➕ Add New Land
                     </button>
                     <button class="map-ctrl-btn" onclick="resetMapView()">
                         🔄 Reset View
@@ -1937,10 +1859,6 @@ footer {
                 <span class="legend-color" style="background:#9333ea;"></span>
                 <span>New Farmer Request Pending</span>
             </div>
-            <div class="legend-chip">
-                <span class="legend-color" style="background:#9333ea;"></span>
-                <span>New Boundary Captured</span>
-            </div>
         </div>
     </div>
 </section>
@@ -1989,16 +1907,31 @@ footer {
                 </div>
             </div>
 
-            <div class="land-grid" id="farmerLandGrid">
-                <!-- Populated dynamically by KrishiState -->
-            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+    
+    <div>
+        <h3 style="margin:0;color:var(--brand-dark);">My Agricultural Lands</h3>
+        <p style="margin:5px 0 0;color:var(--text-muted);font-size:13px;">
+            Manage your registered agricultural parcels
+        </p>
+    </div>
+
+    <button class="btn btn-primary" onclick="openAddNewLand()">
+        ➕ Add New Land
+    </button>
+
+</div>
+
+<div class="land-grid" id="farmerLandGrid">
+    <!-- Populated dynamically by KrishiState -->
+</div>
         </div>
     </div>
 </section>
 
 <!-- MULTI-STEP REQUEST RESURVEY WIZARD -->
 <section id="request-survey">
-    <div class="container">
+    <div class="container">s
         <div class="section-heading">
             <span class="section-tag" data-i18n="tag_apply">DIGITAL APPLICATION</span>
             <h2 data-i18n="wizard_title">📍 Request Survey / Resurvey</h2>
@@ -2102,9 +2035,9 @@ footer {
                                 <strong style="color:var(--brand-forest);font-size:13.5px;">📍 Use Device GPS Location</strong>
                                 <p style="color:var(--text-muted);font-size:12px;margin-top:2px;">Stand at your parcel boundary and tap to detect coordinates automatically.</p>
                             </div>
-                           <button type="button" class="btn btn-primary" style="padding:8px 14px;font-size:12px;" onclick="locateUserGps()">
-    Detect My GPS
-</button>
+                            <button type="button" class="btn btn-primary" style="padding:8px 14px;font-size:12px;" onclick="detectFormGps()">
+                                Detect My GPS
+                            </button>
                         </div>
                     </div>
                     <div class="form-group full">
@@ -2135,7 +2068,7 @@ footer {
                     </div>
                     <div class="form-group">
                         <label>Revenue Passbook / Khasra Document</label>
-                        <input type="file" id="wizDocumentInput" accept=".pdf,image/*">
+                        <input type="file" accept=".pdf,image/*">
                     </div>
                     <div class="form-group">
                         <label>Applicant Aadhaar / Identity</label>
@@ -2190,11 +2123,8 @@ footer {
 
                 <div class="form-buttons">
                     <button class="btn btn-outline-dark" onclick="goToFormStep(3)">← Back</button>
-
-                    <button class="btn btn-primary" 
-                            style="font-size:15px;padding:12px 28px;"
-                            onclick="submitResurveyRequestForm()">
-                       ✓ Submit Survey Request
+                    <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="submitResurveyRequestForm()">
+                        ✓ Submit Survey Request
                     </button>
                 </div>
             </div>
@@ -2673,7 +2603,7 @@ footer {
             </div>
             <div class="form-group" style="margin-bottom:0;">
                 <label>Attach Photo of Boundary Mark (Optional)</label>
-              <input type="file" id="wizDocumentInput" accept=".pdf,image/*">
+                <input type="file" accept="image/*">
             </div>
 
             <button class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="submitBoundaryComplaint()">
@@ -2765,27 +2695,6 @@ footer {
             </div>
 
             <div style="border-top:1px dashed #cbd5e1;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;">
-                <div id="slipFilesSection" style="border-top:1px dashed #cbd5e1;padding-top:14px;margin-bottom:14px;">
-    <strong>Uploaded Documents:</strong>
-
-    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
-        <a id="slipPhotoLink"
-           href="#"
-           target="_blank"
-           class="btn btn-outline-dark"
-           style="display:none;">
-            📷 View Field Photo
-        </a>
-
-        <a id="slipDocumentLink"
-           href="#"
-           target="_blank"
-           class="btn btn-outline-dark"
-           style="display:none;">
-            📄 View Revenue Document
-        </a>
-    </div>
-</div>
                 <div>
                     <div style="font-family:monospace;font-size:11px;color:#64748b;">
                         DIGITAL SIGNATURE HASH:<br>
@@ -2808,57 +2717,6 @@ footer {
 </div>
 
 <!-- TOAST ALERT -->
-
-<!-- ADD NEW LAND MODAL -->
-<div class="modal" id="newLandModal">
-    <div class="modal-box">
-        <button class="close-btn" onclick="closeNewLandModal()">×</button>
-        <div style="margin-bottom:20px;">
-            <span class="section-tag" style="margin-bottom:8px;">GIS LAND REGISTRATION</span>
-            <h2 style="font-size:24px;color:var(--brand-dark);">➕ Add New Agricultural Land</h2>
-            <p style="color:var(--text-muted);font-size:13px;margin-top:6px;">
-                Enter the basic land details, then draw the actual boundary on the map.
-            </p>
-        </div>
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Survey / Khasra Number *</label>
-                <input id="newLandSurveyNumber" placeholder="e.g. MP-GWL-00131">
-            </div>
-            <div class="form-group">
-                <label>Owner / Farmer Name *</label>
-                <input id="newLandOwner" placeholder="e.g. Ram Kumar">
-            </div>
-            <div class="form-group">
-                <label>Village *</label>
-                <input id="newLandVillage" placeholder="e.g. Morar">
-            </div>
-            <div class="form-group">
-                <label>District *</label>
-                <input id="newLandDistrict" value="Gwalior" placeholder="e.g. Gwalior">
-            </div>
-            <div class="form-group full">
-                <label>Recorded Area (Acres) *</label>
-                <input id="newLandRecordedArea" type="number" step="0.01" min="0" placeholder="e.g. 2.50">
-            </div>
-        </div>
-
-        <div class="new-land-preview">
-            <div style="font-size:12px;color:var(--text-muted);">Digital boundary area calculated from your map points</div>
-            <div class="area-result-big" id="newLandCalculatedArea">Not drawn yet</div>
-            <div style="font-size:11px;color:var(--text-muted);" id="newLandPointCount">0 boundary points</div>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-top:20px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="beginBoundaryDrawingFromModal()">
-                📐 Draw Boundary on Map
-            </button>
-            <button class="btn btn-outline-dark" onclick="closeNewLandModal()">Cancel</button>
-        </div>
-    </div>
-</div>
-
 <div class="toast" id="toast">
     <span id="toastIcon">✅</span>
     <span id="toastMsg">Operation successful</span>
@@ -3118,320 +2976,6 @@ let userMarker = null;
 const streetTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const satelliteTileUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
-
-/* =========================================================
-   REAL NEW LAND BOUNDARY DRAWING
-   Stage 1: draw polygon + calculate area + save to localStorage
-========================================================= */
-let isDrawingNewParcel = false;
-let newParcelPoints = [];
-let newParcelMarkers = [];
-let newParcelLine = null;
-let newParcelPolygon = null;
-let pendingNewParcel = null;
-
-function startNewLandWorkflow() {
-    if (!mapInstance) {
-        showToast("GIS map is still loading. Please try again.");
-        return;
-    }
-
-    cancelNewLandBoundary();
-    clearNewLandForm();
-
-    openModal("newLandModal");
-    showToast("Enter land details, then click 'Draw Boundary on Map'.");
-}
-
-function clearNewLandForm() {
-    const nextId = "MP-GWL-" + String(131 + state.parcels.length).padStart(5, "0");
-
-    // Reset the Draw Boundary button whenever a new land entry is started.
-    const drawBtn = document.querySelector("#newLandModal .btn.btn-primary");
-    if (drawBtn) {
-        drawBtn.textContent = "📐 Draw Boundary on Map";
-        drawBtn.disabled = false;
-        drawBtn.style.opacity = "1";
-    }
-    const survey = document.getElementById("newLandSurveyNumber");
-    const owner = document.getElementById("newLandOwner");
-    const village = document.getElementById("newLandVillage");
-    const district = document.getElementById("newLandDistrict");
-    const recorded = document.getElementById("newLandRecordedArea");
-
-    if (survey) survey.value = nextId;
-    if (owner) owner.value = "";
-    if (village) village.value = "";
-    if (district) district.value = "Gwalior";
-    if (recorded) recorded.value = "";
-
-    updateNewLandAreaPreview();
-}
-
-function beginBoundaryDrawingFromModal() {
-    const surveyNumber = document.getElementById("newLandSurveyNumber").value.trim();
-    const owner = document.getElementById("newLandOwner").value.trim();
-    const village = document.getElementById("newLandVillage").value.trim();
-    const district = document.getElementById("newLandDistrict").value.trim();
-    const recordedArea = parseFloat(document.getElementById("newLandRecordedArea").value);
-
-    if (!surveyNumber || !owner || !village || !district || !recordedArea || recordedArea <= 0) {
-        showToast("Please fill all required land details first.");
-        return;
-    }
-
-    if (state.parcels.some(p => String(p.id).toLowerCase() === surveyNumber.toLowerCase())) {
-        showToast("This Survey / Khasra Number already exists.");
-        return;
-    }
-
-    pendingNewParcel = {
-        surveyNumber,
-        owner,
-        village,
-        district,
-        recordedArea
-    };
-
-    closeNewLandModal();
-    startBoundaryDrawing();
-}
-
-function startBoundaryDrawing() {
-    // Keep the land details entered in the modal.
-    // cancelNewLandBoundary() normally clears pendingNewParcel, so preserve it first.
-    const savedPendingParcel = pendingNewParcel;
-    cancelNewLandBoundary();
-    pendingNewParcel = savedPendingParcel;
-
-    isDrawingNewParcel = true;
-    newParcelPoints = [];
-    newParcelMarkers = [];
-
-    const panel = document.getElementById("drawStatusPanel");
-    const status = document.getElementById("drawStatusText");
-    if (panel) panel.classList.add("show");
-    if (status) status.textContent = "Click the map to add boundary points. Add at least 3 points, then click Finish.";
-
-    if (mapInstance) {
-        mapInstance.getContainer().style.cursor = "crosshair";
-        showToast("Boundary mode started — click each corner of the land.");
-    }
-}
-
-function handleNewParcelMapClick(e) {
-    if (!isDrawingNewParcel) return false;
-
-    const point = [e.latlng.lat, e.latlng.lng];
-    newParcelPoints.push(point);
-
-    const marker = L.circleMarker(point, {
-        radius: 6,
-        color: "#14532d",
-        weight: 2,
-        fillColor: "#22c55e",
-        fillOpacity: 1
-    }).addTo(mapInstance);
-
-    marker.bindTooltip("Point " + newParcelPoints.length, {permanent: false});
-    newParcelMarkers.push(marker);
-
-    if (newParcelLine) mapInstance.removeLayer(newParcelLine);
-    newParcelLine = L.polyline(newParcelPoints, {
-        color: "#15803d",
-        weight: 3,
-        dashArray: "7 5"
-    }).addTo(mapInstance);
-
-    if (newParcelPoints.length >= 3) {
-        if (newParcelPolygon) mapInstance.removeLayer(newParcelPolygon);
-
-        newParcelPolygon = L.polygon(newParcelPoints, {
-            color: "#15803d",
-            weight: 3,
-            fillColor: "#22c55e",
-            fillOpacity: 0.20,
-            dashArray: "7 5"
-        }).addTo(mapInstance);
-
-        updateNewLandAreaPreview();
-    }
-
-    const status = document.getElementById("drawStatusText");
-    if (status) {
-        status.textContent = `${newParcelPoints.length} points captured. ${newParcelPoints.length >= 3 ? "You can now click Finish." : "Add at least 3 points."}`;
-    }
-
-    return true;
-}
-
-function calculateNewParcelAreaAcres() {
-    if (newParcelPoints.length < 3) return 0;
-
-    // Calculate polygon area locally so the feature still works if Turf.js
-    // cannot be loaded because of an internet/CDN issue.
-    const R = 6378137;
-    const lat0 = newParcelPoints.reduce((sum, p) => sum + p[0], 0) / newParcelPoints.length;
-    const lat0Rad = lat0 * Math.PI / 180;
-
-    const xy = newParcelPoints.map(([lat, lng]) => [
-        R * (lng * Math.PI / 180) * Math.cos(lat0Rad),
-        R * (lat * Math.PI / 180)
-    ]);
-
-    let area = 0;
-    for (let i = 0; i < xy.length; i++) {
-        const j = (i + 1) % xy.length;
-        area += (xy[i][0] * xy[j][1]) - (xy[j][0] * xy[i][1]);
-    }
-
-    const areaM2 = Math.abs(area) / 2;
-    return areaM2 / 4046.8564224;
-}
-
-function updateNewLandAreaPreview() {
-    const areaEl = document.getElementById("newLandCalculatedArea");
-    const countEl = document.getElementById("newLandPointCount");
-
-    if (countEl) {
-        countEl.textContent = `${newParcelPoints.length} boundary point${newParcelPoints.length === 1 ? "" : "s"}`;
-    }
-
-    if (areaEl) {
-        const acres = calculateNewParcelAreaAcres();
-        areaEl.textContent = acres > 0 ? `${acres.toFixed(4)} Acres` : "Not drawn yet";
-    }
-}
-
-function finishNewLandBoundary() {
-    if (!pendingNewParcel) {
-        showToast("Land details are missing. Please click Add New Land and enter the details again.");
-        return;
-    }
-
-    if (!isDrawingNewParcel || newParcelPoints.length < 3) {
-        showToast("Please capture at least 3 boundary points.");
-        return;
-    }
-
-    const calculatedArea = calculateNewParcelAreaAcres();
-
-    if (!calculatedArea || calculatedArea <= 0) {
-        showToast("Could not calculate the boundary area.");
-        return;
-    }
-
-    isDrawingNewParcel = false;
-    if (mapInstance) mapInstance.getContainer().style.cursor = "";
-
-    const panel = document.getElementById("drawStatusPanel");
-    if (panel) panel.classList.remove("show");
-
-    if (newParcelLine) {
-        mapInstance.removeLayer(newParcelLine);
-        newParcelLine = null;
-    }
-
-    if (newParcelPolygon) {
-        mapInstance.removeLayer(newParcelPolygon);
-        newParcelPolygon = null;
-    }
-
-    const parcelPolygon = newParcelPoints.map(p => [p[0], p[1]]);
-
-    const newParcel = {
-        id: pendingNewParcel.surveyNumber,
-        owner: pendingNewParcel.owner,
-        village: pendingNewParcel.village,
-        district: pendingNewParcel.district,
-        recordedArea: pendingNewParcel.recordedArea,
-        surveyedArea: parseFloat(calculatedArea.toFixed(4)),
-        lat: parseFloat(newParcelPoints.reduce((s, p) => s + p[0], 0) / newParcelPoints.length),
-        lng: parseFloat(newParcelPoints.reduce((s, p) => s + p[1], 0) / newParcelPoints.length),
-        polygon: parcelPolygon,
-        status: "New Boundary Captured",
-        statusCode: "new",
-        color: "#9333ea",
-        priorityScore: 50,
-        surveyDate: "New — Pending Verification",
-        reason: "New Land Registration",
-        source: "User Drawn Prototype Boundary"
-    };
-
-    state.parcels.unshift(newParcel);
-
-    // Remove temporary boundary points after saving; the saved polygon becomes the permanent boundary.
-    newParcelMarkers.forEach(m => {
-        if (mapInstance && mapInstance.hasLayer(m)) mapInstance.removeLayer(m);
-    });
-    newParcelMarkers = [];
-
-    state.activeParcelId = newParcel.id;
-    state.save();
-
-    pendingNewParcel = null;
-
-    renderAll();
-    renderMapParcels();
-    selectParcel(newParcel.id);
-
-    if (mapInstance && newParcel.polygon.length) {
-        mapInstance.fitBounds(newParcel.polygon, {padding: [30, 30]});
-    }
-
-    showToast(`New land ${newParcel.id} added successfully — ${calculatedArea.toFixed(4)} Acres calculated.`);
-
-    if (typeof confetti === "function") {
-        confetti({particleCount: 70, spread: 55, origin: {y: 0.6}});
-    }
-
-    // Finish means the parcel is saved. Close the Add New Land popup
-    // and leave the newly created parcel selected in the inspection panel.
-    closeNewLandModal();
-
-    // Keep the calculated result visible in the inspection panel.
-    selectParcel(newParcel.id);
-
-    // Clear temporary drawing points after the parcel has been saved.
-    newParcelPoints = [];
-}
-
-function cancelNewLandBoundary() {
-    isDrawingNewParcel = false;
-    newParcelPoints = [];
-    pendingNewParcel = null;
-
-    if (mapInstance) mapInstance.getContainer().style.cursor = "";
-
-    newParcelMarkers.forEach(m => {
-        if (mapInstance && mapInstance.hasLayer(m)) mapInstance.removeLayer(m);
-    });
-    newParcelMarkers = [];
-
-    if (newParcelLine && mapInstance) {
-        mapInstance.removeLayer(newParcelLine);
-        newParcelLine = null;
-    }
-
-    if (newParcelPolygon && mapInstance) {
-        mapInstance.removeLayer(newParcelPolygon);
-        newParcelPolygon = null;
-    }
-
-    const panel = document.getElementById("drawStatusPanel");
-    if (panel) panel.classList.remove("show");
-
-    updateNewLandAreaPreview();
-}
-
-function closeNewLandModal() {
-    closeModal("newLandModal");
-}
-
-/* =========================================================
-   END NEW LAND BOUNDARY DRAWING
-========================================================= */
-
 function initGisMap() {
     const defaultCenter = [26.2225, 78.2070];
     mapInstance = L.map("gisMap", {
@@ -3450,8 +2994,6 @@ function initGisMap() {
     renderMapParcels();
 
     mapInstance.on("click", function(e) {
-        if (handleNewParcelMapClick(e)) return;
-
         const lat = e.latlng.lat.toFixed(5);
         const lng = e.latlng.lng.toFixed(5);
         document.getElementById("liveCoordBox").textContent = `Lat: ${lat} | Lng: ${lng}`;
@@ -3525,8 +3067,6 @@ function locateUserGps() {
             (pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
-                document.getElementById("wizLatitude").value = lat;
-document.getElementById("wizLongitude").value = lng;
                 if (userMarker) mapInstance.removeLayer(userMarker);
                 userMarker = L.marker([lat, lng]).addTo(mapInstance)
                     .bindPopup("<b>📍 Your Current Location</b>").openPopup();
@@ -3563,11 +3103,7 @@ function selectParcel(id) {
 
     const statusBadge = document.getElementById("inspectParcelStatus");
     statusBadge.textContent = parcel.status;
-    statusBadge.className = `status status-${
-        parcel.statusCode === "completed" ? "green" :
-        parcel.statusCode === "warning" ? "orange" :
-        parcel.statusCode === "new" ? "purple" : "blue"
-    }`;
+    statusBadge.className = `status status-${parcel.statusCode === "completed" ? "green" : parcel.statusCode === "warning" ? "orange" : "blue"}`;
 
     if (mapInstance && parcel.polygon) {
         mapInstance.setView(parcel.polygon[0], 16);
@@ -3790,21 +3326,9 @@ function detectFormGps() {
     document.getElementById("wizLongitude").value = "78.2045";
     showToast("Device coordinates captured for Step 2!");
 }
-let selectedPhotoFile = null;
-let selectedDocumentFile = null;
-
-document.getElementById("wizDocumentInput").addEventListener("change", function () {
-    selectedDocumentFile = this.files[0] || null;
-
-    if (selectedDocumentFile) {
-        console.log("Selected document:", selectedDocumentFile.name);
-        console.log("Document size:", selectedDocumentFile.size);
-    }
-});
 
 function handlePhotoUpload(input) {
     if (input.files && input.files[0]) {
-      selectedPhotoFile = input.files[0];  
         const reader = new FileReader();
         reader.onload = function(e) {
             const preview = document.getElementById("photoPreviewImg");
@@ -3816,113 +3340,76 @@ function handlePhotoUpload(input) {
     }
 }
 
-async function submitResurveyRequestForm() {
-     const surveyNumber = document.getElementById("wizSurveyNumber").value.trim();
+function submitResurveyRequestForm() {
+    const surveyNumber = document.getElementById("wizSurveyNumber").value.trim();
     const village = document.getElementById("wizVillage").value.trim();
     const district = document.getElementById("wizDistrict").value;
     const recordedArea = document.getElementById("wizRecordedArea").value;
-    const landType = document.getElementById("wizLandType").value;
     const reason = document.getElementById("wizReason").value;
+    const lat = document.getElementById("wizLatitude").value || "26.2245";
+    const lng = document.getElementById("wizLongitude").value || "78.2080";
 
-    const latitude = document.getElementById("wizLatitude").value || "26.2245";
-    const longitude = document.getElementById("wizLongitude").value || "78.2080";
-
-    const additionalNotesElement =
-        document.getElementById("wizAdditionalNotes");
-
-    const additionalNotes =
-        additionalNotesElement ? additionalNotesElement.value.trim() : "";
-console.log("FORM VALUES:", {
-    surveyNumber,
-    village,
-    district,
-    recordedArea,
-    reason
-});
-
-    if (!surveyNumber || !village || !district || !recordedArea || !reason) {
+    if (!surveyNumber || !village || !recordedArea) {
         showToast("Please fill all required fields.");
         goToFormStep(1);
         return;
     }
 
-console.log("VALIDATION PASSED - ABOUT TO SEND");
+    state.addResurveyRequest({
+        surveyNumber, village, district, recordedArea, reason, lat, lng
+    });
 
-    try {
-        const formData = new FormData();
+    renderAll();
+    renderMapParcels();
 
-        formData.append("survey_number", surveyNumber);
-        formData.append("village", village);
-        formData.append("district", district);
-        formData.append("recorded_area", recordedArea);
-        formData.append("land_type", landType);
-        formData.append("reason", reason);
-        formData.append("latitude", latitude);
-        formData.append("longitude", longitude);
-        formData.append(
-    "boundary_notes",
-    document.getElementById("wizBoundaryNotes").value.trim()
-);
-formData.append("additional_notes", additionalNotes);
+    if (typeof confetti === "function") {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
 
-if (selectedPhotoFile) {
-    formData.append("photo", selectedPhotoFile);
+    showToast("Resurvey Application Registered: " + surveyNumber);
+
+    setTimeout(() => {
+        openSlipForParcel(surveyNumber);
+    }, 600);
+
+    goToFormStep(1);
+    document.getElementById("wizSurveyNumber").value = "MP-GWL-00" + Math.floor(130 + Math.random() * 50);
 }
 
-if (selectedDocumentFile) {
-    formData.append("document", selectedDocumentFile);
-}
+/* =========================================================
+   5. AI PRIORITY SIMULATOR & CALCULATOR
+========================================================= */
 
-const response = await fetch("/api/surveys", {
-            method: "POST",
-           body: formData
-           });
-              
+function updatePrioritySim() {
+    const discrepancy = parseFloat(document.getElementById("simDiscrepancy").value);
+    const years = parseInt(document.getElementById("simYears").value);
+    const complaints = parseInt(document.getElementById("simComplaints").value);
 
-        const data = await response.json();
+    document.getElementById("simDiscrepancyVal").textContent = discrepancy + "%";
+    document.getElementById("simYearsVal").textContent = years + " yrs";
+    document.getElementById("simComplaintsVal").textContent = complaints;
 
-        if (!response.ok) {
-            throw new Error(data.message || "Survey request failed");
-        }
+    let score = Math.round((discrepancy * 3.2) + (years * 2.1) + (complaints * 18));
+    if (score > 98) score = 98;
+    if (score < 15) score = 15;
 
-        state.addResurveyRequest({
-            surveyNumber,
-            village,
-            district,
-            recordedArea,
-            reason,
-            lat: latitude,
-            lng: longitude
-        });
+    document.getElementById("priorityScoreVal").textContent = score;
 
-        renderAll();
-        renderMapParcels();
+    const titleEl = document.getElementById("priorityRatingTitle");
+    const gaugeEl = document.getElementById("priorityCircleGauge");
 
-        if (typeof confetti === "function") {
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-        }
-
-        showToast("Resurvey Application Registered: " + surveyNumber);
-
-        setTimeout(() => {
-            openSlipForParcel(surveyNumber);
-        }, 600);
-
-        goToFormStep(1);
-
-        document.getElementById("wizSurveyNumber").value =
-            "MP-GWL-00" + Math.floor(130 + Math.random() * 50);
-
-    } catch (error) {
-        console.error("Survey submission error:", error);
-
-        showToast(
-            "Could not save survey request. Please make sure the backend is running."
-        );
+    if (score >= 75) {
+        titleEl.textContent = `🔴 High Priority — ${score}/100`;
+        titleEl.style.color = "var(--brand-red)";
+        gaugeEl.style.background = `conic-gradient(var(--brand-red) 0% ${score}%, #e2e8f0 ${score}% 100%)`;
+    } else if (score >= 45) {
+        titleEl.textContent = `🟠 Medium Priority — ${score}/100`;
+        titleEl.style.color = "var(--brand-gold)";
+        gaugeEl.style.background = `conic-gradient(var(--brand-gold) 0% ${score}%, #e2e8f0 ${score}% 100%)`;
+    } else {
+        titleEl.textContent = `🟢 Low Priority — ${score}/100`;
+        titleEl.style.color = "var(--brand-primary)";
+        gaugeEl.style.background = `conic-gradient(var(--brand-primary) 0% ${score}%, #e2e8f0 ${score}% 100%)`;
     }
 }
 
@@ -4031,9 +3518,8 @@ function openSlipForParcel(parcelId) {
     document.getElementById("slipRecArea").textContent = `${parcel.recordedArea} Acres`;
     document.getElementById("slipSurvArea").textContent = parcel.surveyedArea > 0 ? `${parcel.surveyedArea} Acres` : "Pending Measurement";
     document.getElementById("slipStatus").textContent = parcel.status;
-   
+
     openModal("slipModal");
-  
 }
 
 function printActiveSlip() {
